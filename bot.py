@@ -1,6 +1,7 @@
 import os
 import discord
 from dotenv import load_dotenv
+from commands import help_command, history_command, host_command, list_command
 
 load_dotenv()
 
@@ -22,7 +23,16 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.startswith('!hello'):
-        await message.channel.send('Hello!')
+    if message.content.startswith('!help'):
+        await help_command.help_command(message)
+
+    elif message.content.startswith('!history'):
+        await history_command.history_command(message)
+
+    elif message.content.startswith('!host'):
+        await host_command.host_command(message)
+
+    elif message.content.startswith('!list'):
+        await list_command.list_command(message)
 
 client.run(TOKEN)
