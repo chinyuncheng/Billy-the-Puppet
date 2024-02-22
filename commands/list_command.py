@@ -1,17 +1,10 @@
-from . import command_descriptions
-from datetime import datetime
+from utils import game_session
 
 async def list_command(message):
-    attendable = False
-    if '-a' in message.content.split():
-        attendable = True
+    game_sessions = game_session.load_game_sessions()
 
-    current_time = datetime.utcnow()
-    if attendable:
-        session_list = [f'{name} - {session["time"]}' for name, session in command_descriptions.command_descriptions.items() if datetime.strptime(session["scheduled_time"], '%Y-%m-%d %H:%M:%S') > current_time]
-    else:
-        session_list = [f'{name} - {session["time"]}' for name, session in command_descriptions.command_descriptions.items()]
-    
+    session_list = [f'{name} - {session["time"]}' for name, session in game_sessions.items()]
+
     if session_list:
         await message.channel.send('Scheduled game sessions:')
         await message.channel.send('\n'.join(session_list))
