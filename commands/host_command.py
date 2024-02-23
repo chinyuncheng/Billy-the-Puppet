@@ -18,7 +18,6 @@ async def host_command(message, client):
     for part in parts:
         if '=' in part:
             param_name, param_value = part.split('=')
-
             param_value = param_value.strip()
 
             if param_name == 'name':
@@ -59,7 +58,7 @@ async def host_command(message, client):
         'recruitment_end_time': recruitment_end_time.isoformat(),
         'created_by': author,
         'created_at': now,
-        'participants': [author]
+        'participants': []
     }
 
     save_game_sessions(game_sessions)
@@ -67,14 +66,12 @@ async def host_command(message, client):
     initial_message_content = await update_message(game_sessions[key])
     initial_message = await message.channel.send(initial_message_content)
 
-    def check(reaction, user):
-        return user != client.user and str(reaction.emoji) == '✅'
+    async def on_reaction_add(reaction, user):
+        if reaction.message.id == initial_message.id:
+            game_sessions[key]['participants'].append(user.display_name)
+            save_game_sessions(game_sessions)
 
-    reaction, user = await client.wait_for('reaction_add', check=check)
+            updated_message_content = await update_message(game_sessions[key])
+            await initial_message.edit(content=updated_message_content)
 
-    game_sessions[key]['participants'].append(user.display_name)
-    save_game_sessions(game_sessions)
-    await message.channel.send(f'{user.display_name} has joined the game session.')
-
-    updated_message_content = await update_message(game_sessions[key])
-    await initial_message.edit(content=updated_message_content)
+    client.event(on_reaction_add)
