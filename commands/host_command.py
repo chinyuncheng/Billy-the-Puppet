@@ -47,31 +47,43 @@ async def host_command(message, client):
 
     game_sessions = load_game_sessions()
 
-    author = message.author.display_name
     now = datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    key = f'{name}_{author}_{now}'
+    key = f'{name}_{now}'
 
     game_sessions[key] = {
         'name': name,
         'players': players,
         'scheduled_time': scheduled_time.isoformat(),
         'recruitment_end_time': recruitment_end_time.isoformat(),
-        'created_by': author,
+        'created_by': message.author.display_name,
         'created_at': now,
-        'participants': []
+        'participants': [],
     }
 
     save_game_sessions(game_sessions)
 
     initial_message_content = await update_message(game_sessions[key])
     initial_message = await message.channel.send(initial_message_content)
-
+    
     async def on_reaction_add(reaction, user):
-        if reaction.message.id == initial_message.id:
+        if user.bot:
+            return
+
+        if reaction.message.id == initial_message.id and user.display_name not in game_sessions[key]['participants']:
             game_sessions[key]['participants'].append(user.display_name)
             save_game_sessions(game_sessions)
-
             updated_message_content = await update_message(game_sessions[key])
             await initial_message.edit(content=updated_message_content)
 
+    async def on_reaction_remove(reaction, user):
+        if user.bot:
+            return
+
+        if reaction.message.id == initial_message.id and user.display_name in game_sessions[key]['participants']:
+            game_sessions[key]['participants'].remove(user.display_name)
+            save_game_sessions(game_sessions)
+            updated_message_content = await update_message(game_sessions[key])
+            await initial_message.edit(content=updated_message_content)
+    
     client.event(on_reaction_add)
+    client.event(on_reaction_remove)

@@ -2,6 +2,7 @@ import os
 import discord
 from dotenv import load_dotenv
 from commands import help_command, host_command, list_command
+from utils import user_data
 
 load_dotenv()
 
@@ -10,6 +11,8 @@ TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 if TOKEN is None:
     print("Error: Bot Token not found in environment variable DISCORD_BOT_TOKEN.")
     exit(1)
+
+print(user_data.get_user_display_name(1053357257938714653))
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -31,17 +34,12 @@ async def on_message(message):
         if content.startswith('help'):
             await help_command.help_command(message)
         return
+    
     else:
         if content.startswith('host'):
             await host_command.host_command(message, client)
 
         elif content.startswith('list'):
             await list_command.list_command(message)
-
-@client.event
-async def on_reaction_add(reaction, user):
-    if user == client.user:
-        return
-    await reaction.message.channel.send('User add reaction')
 
 client.run(TOKEN)
