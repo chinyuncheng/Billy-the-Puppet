@@ -11,10 +11,10 @@ async def update_message(session_data):
     slots = session_data['players'] - num_participants
 
     message = (
-        f"Event: {session_data['name']}\n"
+        f"# {session_data['name']}\n"
         f"Scheduled Time: {scheduled_time}\n"
-        f"Available Slots: {slots}\n"
         f"Recruitment Ends: {recruitment_end_time}\n\n"
+        f"Available Slots: {slots}\n"
         f"Participants:\n"
     )
 

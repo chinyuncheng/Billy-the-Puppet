@@ -8,7 +8,7 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 
 if TOKEN is None:
-    print("Error: Bot token not found in environment variable DISCORD_BOT_TOKEN.")
+    print("Error: Bot Token not found in environment variable DISCORD_BOT_TOKEN.")
     exit(1)
 
 intents = discord.Intents.default()
@@ -27,14 +27,16 @@ async def on_message(message):
     
     content = message.content.lower().strip()
 
-    if content.startswith('help'):
-        await help_command.help_command(message)
+    if isinstance(message.channel, discord.DMChannel):
+        if content.startswith('help'):
+            await help_command.help_command(message)
+        return
+    else:
+        if content.startswith('host'):
+            await host_command.host_command(message, client)
 
-    elif content.startswith('host'):
-        await host_command.host_command(message, client)
-
-    elif content.startswith('list'):
-        await list_command.list_command(message)
+        elif content.startswith('list'):
+            await list_command.list_command(message)
 
 @client.event
 async def on_reaction_add(reaction, user):
