@@ -1,7 +1,7 @@
 import datetime
 import pytz
-from utils.game_session import save_game_sessions, load_game_sessions
-from utils.update_message import update_message
+from utils.json_helper import save_game_sessions, load_game_sessions
+from utils.game_session_message import update_message
 
 async def host_command(message, client):
     """
@@ -50,14 +50,18 @@ async def host_command(message, client):
     now = datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
     key = f'{name}_{now}'
 
+    author = {
+        message.author.id : message.author.display_name
+    }
+
     game_sessions[key] = {
         'name': name,
         'players': players,
         'scheduled_time': scheduled_time.isoformat(),
         'recruitment_end_time': recruitment_end_time.isoformat(),
-        'created_by': message.author.display_name,
+        'created_by': author,
         'created_at': now,
-        'participants': [],
+        'participants': {},
     }
 
     save_game_sessions(game_sessions)
@@ -65,25 +69,23 @@ async def host_command(message, client):
     initial_message_content = await update_message(game_sessions[key])
     initial_message = await message.channel.send(initial_message_content)
     
-    async def on_reaction_add(reaction, user):
-        if user.bot:
+    async def on_raw_reaction_add(payload):
+        if payload.member.bot:
             return
 
-        if reaction.message.id == initial_message.id and user.display_name not in game_sessions[key]['participants']:
-            game_sessions[key]['participants'].append(user.display_name)
+        if payload.message_id == initial_message.id and payload.user_id not in game_sessions[key]['participants'].keys():
+            user = await client.fetch_user(payload.user_id)
+            game_sessions[key]['participants'][user.id] = user.display_name
             save_game_sessions(game_sessions)
             updated_message_content = await update_message(game_sessions[key])
             await initial_message.edit(content=updated_message_content)
 
-    async def on_reaction_remove(reaction, user):
-        if user.bot:
-            return
-
-        if reaction.message.id == initial_message.id and user.display_name in game_sessions[key]['participants']:
-            game_sessions[key]['participants'].remove(user.display_name)
+    async def on_raw_reaction_remove(payload):
+        if payload.message_id == initial_message.id and payload.user_id in game_sessions[key]['participants']:
+            del game_sessions[key]['participants'][payload.user_id]
             save_game_sessions(game_sessions)
             updated_message_content = await update_message(game_sessions[key])
             await initial_message.edit(content=updated_message_content)
     
-    client.event(on_reaction_add)
-    client.event(on_reaction_remove)
+    client.event(on_raw_reaction_add)
+    client.event(on_raw_reaction_remove)

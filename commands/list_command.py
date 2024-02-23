@@ -1,7 +1,10 @@
-from utils import game_session
+from utils import json_helper
 
 async def list_command(message):
-    game_sessions = game_session.load_game_sessions()
+    """
+    List the existing game session.
+    """
+    game_sessions = json_helper.load_game_sessions()
 
     session_list = [f'{name} - {session["time"]}' for name, session in game_sessions.items()]
 

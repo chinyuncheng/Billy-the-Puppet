@@ -29,11 +29,16 @@ async def update_message(session_data):
     )
 
     if num_participants > 0:
-        participants_list = "\n".join([f"{i+1:2}. {participant}" for i, participant in enumerate(session_data['participants'])])
+        participants_list = "\n".join([f"{i+1:2}. {value}" for i, (_, value) in enumerate(session_data['participants'].items())])
         message += participants_list
     else:
         message += "No participants yet."
     message += f"```\n"
-    message += f"Hosted by {session_data['created_by']} | React to the message to join"
+
+    author = ''
+    for _, value in session_data['created_by'].items():
+        author = value
+
+    message += f"Hosted by {author} | React to the message to join"
 
     return message
