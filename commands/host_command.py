@@ -1,9 +1,11 @@
+import config
 import datetime
 import pytz
+from utils.datetime_helper import get_time
 from utils.json_helper import save_game_sessions, load_game_sessions
 from utils.game_session_message import update_message
 
-async def host_command(message, client):
+async def host_command(message):
     """
     Host a game session.
     """
@@ -11,9 +13,10 @@ async def host_command(message, client):
     parts = content.split(',')
 
     name = ''
-    players = 0
-    scheduled_time = ''
-    recruitment_end_time = ''
+    player = 0
+    date = ''
+    endtime = 0
+    timezone = None
 
     for part in parts:
         if '=' in part:
@@ -22,33 +25,37 @@ async def host_command(message, client):
 
             if param_name == 'name':
                 name = param_value
-            elif param_name == 'players':
-                players = int(param_value)
-            elif param_name == 'scheduled_time':
-                scheduled_time = param_value
-            elif param_name == 'recruitment_end_time':
-                recruitment_end_time = param_value
+            elif param_name == 'player':
+                player = int(param_value)
+            elif param_name == 'date':
+                date = param_value
+            elif param_name == 'endtime':
+                endtime = int(param_value)
+            elif param_name == 'timezone':
+                timezone = param_value
 
-    if not name or players <= 0 or not scheduled_time or not recruitment_end_time:
-        await message.channel.send('Please provide name, players (as a positive integer), scheduled_time, and recruitment_end_time after the `host` command.')
+    if not name or player <= 0 or not date or endtime <= 0:
+        await message.channel.send('Please provide name, player (as a positive integer), date, and endtime (as a positive integer) after the `host` command.')
         return
     
     try:
-        scheduled_time = datetime.datetime.strptime(scheduled_time, '%Y-%m-%d %H:%M')
-        recruitment_end_time = datetime.datetime.strptime(recruitment_end_time, '%Y-%m-%d %H:%M')
+        date = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M')
     except ValueError:
-        await message.channel.send('Please provide scheduled_time and recruitment_end_time in the format "YYYY-MM-DD HH:MM".')
+        await message.channel.send('Please provide date in the format "YYYY-MM-DD HH:MM".')
         return
+    
+    if timezone is None:
+        timezone = pytz.timezone(config.TIMEZONE)
+    else:
+        try:
+            timezone = pytz.timezone(timezone)
+        except Exception as e:
+            await message.channel.send("Please refer to the website for all available timezone: https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568")
 
-    local_timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
-    if local_timezone != pytz.timezone('Asia/Taipei').localize(datetime.datetime.now()).tzinfo:
-        scheduled_time = pytz.timezone('Asia/Taipei').localize(scheduled_time)
-        recruitment_end_time = pytz.timezone('Asia/Taipei').localize(recruitment_end_time)
-
+    now = get_time(specific_timezone=timezone)
     game_sessions = load_game_sessions()
 
-    now = datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    key = f'{name}_{now}'
+    key = f'{name}_{now.strftime("%Y%m%d%H%M%S")}'
 
     author = {
         message.author.id : message.author.display_name
@@ -56,36 +63,24 @@ async def host_command(message, client):
 
     game_sessions[key] = {
         'name': name,
-        'players': players,
-        'scheduled_time': scheduled_time.isoformat(),
-        'recruitment_end_time': recruitment_end_time.isoformat(),
+        'player': player,
+        'date': date.isoformat(),
+        'endtime': endtime,
         'created_by': author,
-        'created_at': now,
+        'created_at': now.isoformat(),
+        'message_id': '',
+        'timezone': timezone.zone,
         'participants': {},
     }
 
+    response_message_content = 'Received'
+    response_message = await message.channel.send(response_message_content)
+    game_sessions[key]['message_id'] = response_message.id
+
     save_game_sessions(game_sessions)
 
-    initial_message_content = await update_message(game_sessions[key])
-    initial_message = await message.channel.send(initial_message_content)
-    
-    async def on_raw_reaction_add(payload):
-        if payload.member.bot:
-            return
-
-        if payload.message_id == initial_message.id and payload.user_id not in game_sessions[key]['participants'].keys():
-            user = await client.fetch_user(payload.user_id)
-            game_sessions[key]['participants'][user.id] = user.display_name
-            save_game_sessions(game_sessions)
-            updated_message_content = await update_message(game_sessions[key])
-            await initial_message.edit(content=updated_message_content)
-
-    async def on_raw_reaction_remove(payload):
-        if payload.message_id == initial_message.id and payload.user_id in game_sessions[key]['participants']:
-            del game_sessions[key]['participants'][payload.user_id]
-            save_game_sessions(game_sessions)
-            updated_message_content = await update_message(game_sessions[key])
-            await initial_message.edit(content=updated_message_content)
-    
-    client.event(on_raw_reaction_add)
-    client.event(on_raw_reaction_remove)
+    try:
+        updated_message_content = await update_message(game_sessions[key])
+        await response_message.edit(content=updated_message_content)
+    except Exception as e:
+        await message.channel.send("An error occurred while updating the game session details. Please try again later.")

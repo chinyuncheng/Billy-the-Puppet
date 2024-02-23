@@ -4,11 +4,11 @@ command_descriptions = {
 }
 
 command_usages = {
-    'host': 'host <name>,<players>,<scheduled_time>,<recruitment_end_time>',
+    'host': 'host <name>,<player>,<date>,<endtime (hrs)>,[timezone]',
     'list': 'list [-a]'
 }
 
 command_examples = {
-    'host': 'host name=Baldur''s Gate 3,players=4,scheduled_time=2024-02-25 14:00,recruitment_end_time=2024-02-24 23:00',
+    'host': 'host name=Baldur''s Gate 3,player=4,date=2024-02-25 14:00,endtime=72',
     'list': 'list'
 }

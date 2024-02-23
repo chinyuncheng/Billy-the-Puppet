@@ -1,10 +1,10 @@
-import os
 import discord
+import os
+from commands import help_command, host_command, list_command
 from dotenv import load_dotenv
-from commands import command_help, command_host, command_list
+from utils import reaction_helper
 
 load_dotenv()
-
 TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 
 if TOKEN is None:
@@ -29,14 +29,22 @@ async def on_message(message):
 
     if isinstance(message.channel, discord.DMChannel):
         if content.startswith('help'):
-            await command_help.help_command(message)
+            await help_command.help_command(message)
         return
     
     else:
         if content.startswith('host'):
-            await command_host.host_command(message, client)
+            await host_command.host_command(message)
 
         elif content.startswith('list'):
-            await command_list.list_command(message)
+            await list_command.list_command(message)
+
+@client.event
+async def on_raw_reaction_add(payload):
+    await reaction_helper.on_raw_reaction_add(payload, client)
+
+@client.event
+async def on_raw_reaction_remove(payload):
+    await reaction_helper.on_raw_reaction_remove(payload, client)
 
 client.run(TOKEN)
