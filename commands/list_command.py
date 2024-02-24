@@ -2,7 +2,7 @@ from utils import json_helper
 
 async def list_command(message):
     """
-    List the existing game session.
+    List existing scheduled game events.
     """
     game_sessions = json_helper.load_game_sessions()
 

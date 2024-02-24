@@ -1,14 +1,14 @@
 import config
 import datetime
-import game_session_keys
+import game_event.keys
+import game_event.message
 import pytz
-from utils.datetime_helper import get_time
-from utils.json_helper import save_game_sessions, load_game_sessions
-from utils.game_session_message import update_message
+import utils.json_helper
+import utils.datetime_helper
 
 async def host_command(message):
     """
-    Host a game session.
+    Schedule a game event.
     """
     content = message.content.replace('host ', '')
     parts = content.split(',')
@@ -53,8 +53,8 @@ async def host_command(message):
         except Exception as e:
             await message.channel.send("Please refer to the website for all available timezone: https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568")
 
-    now = get_time(specific_timezone=timezone)
-    game_sessions = load_game_sessions()
+    now = utils.datetime_helper.get_time(specific_timezone=timezone)
+    game_events = utils.json_helper.load()
 
     key = f'{name}_{now.strftime("%Y%m%d%H%M%S")}'
 
@@ -62,26 +62,26 @@ async def host_command(message):
         message.author.id : message.author.display_name
     }
 
-    game_sessions[key] = {
-        game_session_keys.NAME: name,
-        game_session_keys.PLAYER: player,
-        game_session_keys.DATE: date.isoformat(),
-        game_session_keys.ENDTIME: endtime,
-        game_session_keys.CREATED_BY: author,
-        game_session_keys.CREATED_AT: now.isoformat(),
-        game_session_keys.MESSAGE_ID: '',
-        game_session_keys.TIMEZONE: timezone.zone,
-        game_session_keys.PARTICIPANTS: {},
+    game_events[key] = {
+        game_event.keys.NAME: name,
+        game_event.keys.PLAYER: player,
+        game_event.keys.DATE: date.isoformat(),
+        game_event.keys.ENDTIME: endtime,
+        game_event.keys.CREATED_BY: author,
+        game_event.keys.CREATED_AT: now.isoformat(),
+        game_event.keys.MESSAGE_ID: '',
+        game_event.keys.TIMEZONE: timezone.zone,
+        game_event.keys.PARTICIPANTS: {},
     }
 
     response_message_content = 'Received'
     response_message = await message.channel.send(response_message_content)
-    game_sessions[key][game_session_keys.MESSAGE_ID] = response_message.id
+    game_events[key][game_event.keys.MESSAGE_ID] = response_message.id
 
-    save_game_sessions(game_sessions)
+    utils.json_helper.save(game_events)
 
     try:
-        updated_message_content = await update_message(game_sessions[key])
+        updated_message_content = await game_event.message.update_message(game_events[key])
         await response_message.edit(content=updated_message_content)
     except Exception as e:
         await message.channel.send("An error occurred while updating the game session details. Please try again later.")

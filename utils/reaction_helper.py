@@ -1,7 +1,7 @@
 import discord
-import game_session_keys
-from utils.json_helper import save_game_sessions, load_game_sessions
-from utils.game_session_message import update_message
+import game_event.keys
+import game_event.message
+import utils.json_helper
 
 async def get_message(client, channel_id, message_id):
     """
@@ -25,21 +25,21 @@ async def on_raw_reaction_add(payload, client):
     if payload.member.bot:
         return
     
-    game_sessions = load_game_sessions()
+    game_events = utils.json_helper.load()
 
-    for _, value in game_sessions.items():
-        if payload.message_id == value[game_session_keys.MESSAGE_ID]:
-            participants_dict = value[game_session_keys.PARTICIPANTS]
+    for _, value in game_events.items():
+        if payload.message_id == value[game_event.keys.MESSAGE_ID]:
+            participants_dict = value[game_event.keys.PARTICIPANTS]
             
             if payload.user_id in participants_dict:
                 break
             
             user = await client.fetch_user(payload.user_id)
             participants_dict[f'{payload.user_id}'] = user.display_name
-            value[game_session_keys.PARTICIPANTS] = participants_dict
-            save_game_sessions(game_sessions)
+            value[game_event.keys.PARTICIPANTS] = participants_dict
+            utils.json_helper.save(game_events)
 
-            updated_message_content = await update_message(value)
+            updated_message_content = await game_event.message.update_message(value)
             await message.edit(content=updated_message_content)
             break
 
@@ -51,20 +51,20 @@ async def on_raw_reaction_remove(payload, client):
     if message is None:
         return
     
-    game_sessions = load_game_sessions()
+    game_events = utils.json_helper.load()
 
-    for _, value in game_sessions.items():
-        if payload.message_id == value[game_session_keys.MESSAGE_ID]:
-            participants_dict = value[game_session_keys.PARTICIPANTS]
+    for _, value in game_events.items():
+        if payload.message_id == value[game_event.keys.MESSAGE_ID]:
+            participants_dict = value[game_event.keys.PARTICIPANTS]
 
             key = f'{payload.user_id}'
             if key not in participants_dict:
                 break
 
             del participants_dict[key]
-            value[game_session_keys.PARTICIPANTS] = participants_dict
-            save_game_sessions(game_sessions)
+            value[game_event.keys.PARTICIPANTS] = participants_dict
+            utils.json_helper.save(game_events)
 
-            updated_message_content = await update_message(value)
+            updated_message_content = await game_event.message.update_message(value)
             await message.edit(content=updated_message_content)
             break
