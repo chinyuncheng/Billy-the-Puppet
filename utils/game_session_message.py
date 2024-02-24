@@ -1,4 +1,5 @@
 import datetime
+import game_session_keys
 import pytz
 from utils.datetime_helper import get_time, get_timezone_offsets_in_gmt
 
@@ -6,14 +7,14 @@ async def update_message(session_data):
     """
     Update the game session message.
     """
-    timezone = pytz.timezone(session_data['timezone'])
+    timezone = pytz.timezone(session_data[game_session_keys.TIMEZONE])
     sign, offset_hours = get_timezone_offsets_in_gmt(timezone)
 
-    date = datetime.datetime.fromisoformat(session_data['date']).strftime('%-m/%d %H:%M')
+    date = datetime.datetime.fromisoformat(session_data[game_session_keys.DATE]).strftime('%-m/%d %H:%M')
     date += f" GMT{sign}{offset_hours}"
 
-    endtime = session_data['endtime']
-    created_at = datetime.datetime.fromisoformat(session_data['created_at'])
+    endtime = session_data[game_session_keys.ENDTIME]
+    created_at = datetime.datetime.fromisoformat(session_data[game_session_keys.CREATED_AT])
     
     now = get_time(specific_timezone=timezone)
     
@@ -35,24 +36,24 @@ async def update_message(session_data):
             remaining_time_str += f"{minutes} mins"
         remaining_time_str += f"\nfrom when this message was sent"
 
-    num_participants = len(session_data['participants'])
-    slots = session_data['player'] - num_participants
+    num_participants = len(session_data[game_session_keys.PARTICIPANTS])
+    slots = session_data[game_session_keys.PLAYER] - num_participants
 
     message = (
-        f">>> ## {session_data['name']}  {date} [{slots} Slots]\n"
+        f">>> ## {session_data[game_session_keys.NAME]}  {date} [{slots} Slots]\n"
         f"{remaining_time_str}\n"
         f"```\n"
     )
 
     if num_participants > 0:
-        participants_list = "\n".join([f"{i+1:2}. {value}" for i, (_, value) in enumerate(session_data['participants'].items())])
+        participants_list = "\n".join([f"{i+1:2}. {value}" for i, (_, value) in enumerate(session_data[game_session_keys.PARTICIPANTS].items())])
         message += participants_list
     else:
         message += "No participants yet."
     message += f"```\n"
 
     author = ''
-    for _, value in session_data['created_by'].items():
+    for _, value in session_data[game_session_keys.CREATED_BY].items():
         author = value
 
     message += f"Hosted by {author} | React to the message to join"

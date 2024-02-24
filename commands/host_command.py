@@ -1,5 +1,6 @@
 import config
 import datetime
+import game_session_keys
 import pytz
 from utils.datetime_helper import get_time
 from utils.json_helper import save_game_sessions, load_game_sessions
@@ -62,20 +63,20 @@ async def host_command(message):
     }
 
     game_sessions[key] = {
-        'name': name,
-        'player': player,
-        'date': date.isoformat(),
-        'endtime': endtime,
-        'created_by': author,
-        'created_at': now.isoformat(),
-        'message_id': '',
-        'timezone': timezone.zone,
-        'participants': {},
+        game_session_keys.NAME: name,
+        game_session_keys.PLAYER: player,
+        game_session_keys.DATE: date.isoformat(),
+        game_session_keys.ENDTIME: endtime,
+        game_session_keys.CREATED_BY: author,
+        game_session_keys.CREATED_AT: now.isoformat(),
+        game_session_keys.MESSAGE_ID: '',
+        game_session_keys.TIMEZONE: timezone.zone,
+        game_session_keys.PARTICIPANTS: {},
     }
 
     response_message_content = 'Received'
     response_message = await message.channel.send(response_message_content)
-    game_sessions[key]['message_id'] = response_message.id
+    game_sessions[key][game_session_keys.MESSAGE_ID] = response_message.id
 
     save_game_sessions(game_sessions)
 

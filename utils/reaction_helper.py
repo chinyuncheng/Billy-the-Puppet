@@ -1,4 +1,5 @@
 import discord
+import game_session_keys
 from utils.json_helper import save_game_sessions, load_game_sessions
 from utils.game_session_message import update_message
 
@@ -27,15 +28,15 @@ async def on_raw_reaction_add(payload, client):
     game_sessions = load_game_sessions()
 
     for _, value in game_sessions.items():
-        if payload.message_id == value['message_id']:
-            participants_dict = value['participants']
+        if payload.message_id == value[game_session_keys.MESSAGE_ID]:
+            participants_dict = value[game_session_keys.PARTICIPANTS]
             
             if payload.user_id in participants_dict:
                 break
             
             user = await client.fetch_user(payload.user_id)
             participants_dict[f'{payload.user_id}'] = user.display_name
-            value['participants'] = participants_dict
+            value[game_session_keys.PARTICIPANTS] = participants_dict
             save_game_sessions(game_sessions)
 
             updated_message_content = await update_message(value)
@@ -53,15 +54,15 @@ async def on_raw_reaction_remove(payload, client):
     game_sessions = load_game_sessions()
 
     for _, value in game_sessions.items():
-        if payload.message_id == value['message_id']:
-            participants_dict = value['participants']
+        if payload.message_id == value[game_session_keys.MESSAGE_ID]:
+            participants_dict = value[game_session_keys.PARTICIPANTS]
 
             key = f'{payload.user_id}'
             if key not in participants_dict:
                 break
 
             del participants_dict[key]
-            value['participants'] = participants_dict
+            value[game_session_keys.PARTICIPANTS] = participants_dict
             save_game_sessions(game_sessions)
 
             updated_message_content = await update_message(value)
