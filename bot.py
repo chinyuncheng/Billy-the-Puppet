@@ -1,8 +1,32 @@
+"""
+MIT License
+
+Copyright (c) 2024-present chinyuncheng
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
 import discord
 import os
-from commands import help_command, host_command, list_command
+from core import commands
 from dotenv import load_dotenv
-from utils import reaction_helper
+from utils import discord_helper
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_BOT_TOKEN')
@@ -29,22 +53,22 @@ async def on_message(message):
 
     if isinstance(message.channel, discord.DMChannel):
         if content.startswith('help'):
-            await help_command.help_command(message)
+            await commands.help(message)
         return
     
     else:
         if content.startswith('host'):
-            await host_command.host_command(message)
+            await commands.host(message)
 
         elif content.startswith('list'):
-            await list_command.list_command(message)
+            await commands.list(message)
 
 @client.event
 async def on_raw_reaction_add(payload):
-    await reaction_helper.on_raw_reaction_add(payload, client)
+    await discord_helper.on_raw_reaction_add(payload, client)
 
 @client.event
 async def on_raw_reaction_remove(payload):
-    await reaction_helper.on_raw_reaction_remove(payload, client)
+    await discord_helper.on_raw_reaction_remove(payload, client)
 
 client.run(TOKEN)
