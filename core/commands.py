@@ -140,6 +140,7 @@ async def host(message):
     
     response_message_content = 'Received'
     response_message = await message.channel.send(response_message_content)
+    await response_message.add_reaction('⚔️')
     key = response_message.id
 
     game_events = await json_helper.load()
@@ -171,7 +172,7 @@ async def list(message):
             filter_creator = True
 
     game_events_list = []
-    game_events = json_helper.load()
+    game_events = await json_helper.load()
 
     for _, value in game_events.items():
         timezone = pytz.timezone(value[GameEvent.TIMEZONE])

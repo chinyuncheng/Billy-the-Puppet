@@ -44,8 +44,9 @@ async def on_raw_reaction_add(payload, client):
     message = await get_message(client, payload.channel_id, payload.message_id)
     if message is None:
         return
-
     if payload.member.bot:
+        return
+    if payload.emoji.name != '⚔️':
         return
     
     game_events = await json_helper.load()
@@ -72,6 +73,8 @@ async def on_raw_reaction_remove(payload, client):
     """
     message = await get_message(client, payload.channel_id, payload.message_id)
     if message is None:
+        return
+    if payload.emoji.name != '⚔️':
         return
     
     game_events = await json_helper.load()
