@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import datetime
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -52,14 +53,28 @@ async def on_raw_reaction_remove(payload):
     description="Show all the available commands.",
     guild=settings.GUILD_ID,
 )
-@app_commands.describe(param_1="This is required.")
-@app_commands.describe(param_2="This is not required.")
-async def help_command(
-    interaction: discord.Interaction,
-    param_1: str,
-    param_2: str = "Optional"
-    ):
+async def help_command(interaction: discord.Interaction):
     await core_commands.help(interaction)
+
+@bot.tree.command(
+    name="host",
+    description="Schedule a game event.",
+    guild=settings.GUILD_ID
+)
+@app_commands.describe(name="The game event name.")
+@app_commands.describe(player="The number of players.")
+@app_commands.describe(date="The game event date. Please provide in the format \"YYYY-MM-DD HH:MM\".")
+@app_commands.describe(endtime="The recruitment period will end in (hours).")
+@app_commands.describe(timezone="The timezone of the game event.")
+async def host_command(
+    interaction: discord.Interaction,
+    name: str,
+    player: int,
+    date: str,
+    endtime: float,
+    timezone: str = None
+):
+    await core_commands.host(interaction, name, player, date, endtime, timezone)
 
 if settings.DISCORD_BOT_TOKEN  is None:
     logger.error("Not found DISCORD_BOT_TOKEN in environment variable.")
