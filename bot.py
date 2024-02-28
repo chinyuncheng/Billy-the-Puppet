@@ -23,17 +23,11 @@ SOFTWARE.
 """
 
 import discord
-import os
+import settings
 from core import commands
-from dotenv import load_dotenv
 from utils import discord_helper
 
-load_dotenv()
-TOKEN = os.getenv('DISCORD_BOT_TOKEN')
-
-if TOKEN is None:
-    print("Error: Bot Token not found in environment variable DISCORD_BOT_TOKEN.")
-    exit(1)
+logger = settings.logging.getLogger("bot")
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -42,7 +36,7 @@ client = discord.Client(intents=intents)
 
 @client.event
 async def on_ready():
-    print(f'We have logged in as {client.user}')
+    logger.info(f"{client.user} (ID: {client.user.id})".format(client))
 
 @client.event
 async def on_message(message):
@@ -71,4 +65,8 @@ async def on_raw_reaction_add(payload):
 async def on_raw_reaction_remove(payload):
     await discord_helper.on_raw_reaction_remove(payload, client)
 
-client.run(TOKEN)
+if settings.DISCORD_BOT_TOKEN  is None:
+    logger.error("Not found DISCORD_BOT_TOKEN in environment variable.")
+    exit(1)
+
+client.run(settings.DISCORD_BOT_TOKEN)

@@ -22,12 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import config
 import datetime
 import pytz
+import settings
 import time
 
-def get_time(date = None, specific_timezone=pytz.timezone(config.TIMEZONE)):
+def get_time(date = None, specific_timezone=pytz.timezone(settings.TIMEZONE)):
     """
     Convert time to a specific timezone if necessary.
     """
@@ -42,7 +42,7 @@ def get_time(date = None, specific_timezone=pytz.timezone(config.TIMEZONE)):
 
     return date
 
-def get_timezone_offsets_in_gmt(timezone=pytz.timezone(config.TIMEZONE)):
+def get_timezone_offsets_in_gmt(timezone=pytz.timezone(settings.TIMEZONE)):
     """
     Get UTC offset in GMT format.
     """

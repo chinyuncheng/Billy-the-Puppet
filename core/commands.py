@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import config
 import datetime
 import pytz
+import settings
 from core.game_events import GameEvent
 from utils import datetime_helper, json_helper
 
@@ -95,7 +95,7 @@ async def extract_host_params(message):
         return
     
     if timezone is None:
-        timezone = pytz.timezone(config.TIMEZONE)
+        timezone = pytz.timezone(settings.TIMEZONE)
     else:
         try:
             timezone = pytz.timezone(timezone)
