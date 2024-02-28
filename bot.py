@@ -23,50 +23,46 @@ SOFTWARE.
 """
 
 import discord
+from discord import app_commands
+from discord.ext import commands
+
+import core.commands as core_commands
 import settings
-from core import commands
 from utils import discord_helper
 
 logger = settings.logging.getLogger("bot")
 
-intents = discord.Intents.default()
-intents.messages = True
-intents.message_content = True
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix="/", intents=discord.Intents.all())
 
-@client.event
+@bot.event
 async def on_ready():
-    logger.info(f"{client.user} (ID: {client.user.id})".format(client))
+    logger.info(f"{bot.user} (ID: {bot.user.id})".format(bot))
+    await bot.tree.sync(guild=settings.GUILD_ID)
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-    
-    content = message.content.lower().strip()
-
-    if isinstance(message.channel, discord.DMChannel):
-        if content.startswith('help'):
-            await commands.help(message)
-        return
-    
-    else:
-        if content.startswith('host'):
-            await commands.host(message)
-
-        elif content.startswith('list'):
-            await commands.list(message)
-
-@client.event
+@bot.event
 async def on_raw_reaction_add(payload):
-    await discord_helper.on_raw_reaction_add(payload, client)
+    await discord_helper.on_raw_reaction_add(payload, bot)
 
-@client.event
+@bot.event
 async def on_raw_reaction_remove(payload):
-    await discord_helper.on_raw_reaction_remove(payload, client)
+    await discord_helper.on_raw_reaction_remove(payload, bot)
+
+@bot.tree.command(
+    name="help",
+    description="Show all the available commands.",
+    guild=settings.GUILD_ID,
+)
+@app_commands.describe(param_1="This is required.")
+@app_commands.describe(param_2="This is not required.")
+async def help_command(
+    interaction: discord.Interaction,
+    param_1: str,
+    param_2: str = "Optional"
+    ):
+    await core_commands.help(interaction)
 
 if settings.DISCORD_BOT_TOKEN  is None:
     logger.error("Not found DISCORD_BOT_TOKEN in environment variable.")
     exit(1)
 
-client.run(settings.DISCORD_BOT_TOKEN)
+bot.run(settings.DISCORD_BOT_TOKEN)

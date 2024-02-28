@@ -23,23 +23,17 @@ SOFTWARE.
 """
 
 import datetime
+import discord
 import pytz
+
 import settings
 from core.game_events import GameEvent
 from utils import datetime_helper, json_helper
 
 # TODO: Add language feature
 command_descriptions = {
-    'host': 'Schedule a game event.',
-    'list': 'List existing scheduled game events.'
-}
-command_usages = {
-    'host': 'host <name>,<player>,<date>,<endtime (hrs)>,[timezone]',
-    'list': 'list [-a] [-h]'
-}
-command_examples = {
-    'host': 'host name=Baldur''s Gate 3,player=4,date=2024-02-25 14:00,endtime=180',
-    'list': 'list'
+    '/host': 'Schedule a game event.',
+    '/list': 'List existing scheduled game events.'
 }
 
 async def extract_host_params(message):
@@ -105,18 +99,14 @@ async def extract_host_params(message):
     
     return name, player, date, endtime, creator, timezone
 
-async def help(message):
+async def help(interaction: discord.Interaction):
     """
     Show all the available commands.
     """
     help_message = ">>> ## Here are the available commands\n"
     for command, description in command_descriptions.items():
-        help_message += f"{command}: {description}\n"
-        help_message += f"{command_usages[command]}\n"
-        help_message += f"```\n"
-        help_message += f"{command_examples[command]}"
-        help_message += f"```\n"
-    await message.channel.send(help_message)
+        help_message += f"`{command}` {description}\n"
+    await interaction.response.send_message(f"{help_message}", ephemeral=True)
 
 async def host(message):
     """

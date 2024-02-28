@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import discord
 import logging
 import os
 from dotenv import load_dotenv
@@ -31,6 +32,7 @@ load_dotenv()
 
 DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 GAME_EVENTS_FILE_PATH = 'game_events.json'
+GUILD_ID = discord.Object(id=int(os.getenv("GUILD_ID")))
 TIMEZONE = 'Asia/Taipei'
 
 LOGGING_CONFIG = {
