@@ -28,7 +28,7 @@ import pytz
 
 import settings
 from core.game_events import GameEvent
-from utils import datetime_helper, json_helper
+from utils import json_helper
 
 # TODO: Add language feature
 command_descriptions = {
@@ -89,7 +89,7 @@ async def host(
         GameEvent.CREATOR_DISPLAY_NAME: user.display_name
     }
 
-    now = datetime_helper.get_time(specific_timezone = timezone)
+    now = datetime.datetime.now(tz=timezone)
     game_event = GameEvent(
         name = name,
         player = player,
@@ -113,7 +113,7 @@ async def host(
     await json_helper.save(game_events)
 
     try:
-        updated_message_content = await game_event.get_messages()
+        updated_message_content = game_event.get_messages()
         await response_message.edit(content=updated_message_content)
     except Exception as e:
         message = f"An error occurred while updating the game session details. Please try again later."
@@ -140,7 +140,7 @@ async def list(message):
 
     for _, value in game_events.items():
         timezone = pytz.timezone(value[GameEvent.TIMEZONE])
-        now = datetime_helper.get_time(specific_timezone = timezone)
+        now = datetime.datetime.now(tz=timezone)
 
     if game_events_list:
         await message.channel.send('Scheduled game events:')

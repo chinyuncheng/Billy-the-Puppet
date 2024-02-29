@@ -24,8 +24,7 @@ SOFTWARE.
 
 import datetime
 import pytz
-from typing import Union
-import utils.datetime_helper
+from utils import datetime_helper
 
 class GameEvent:
     """
@@ -43,7 +42,7 @@ class GameEvent:
     PARTICIPANTS = 'participants'
 
     def __init__(self, name: str, player: int, date: datetime.datetime, endtime: float,
-                 creator: dict, createtime: datetime.datetime, timezone: Union[pytz.tzinfo.StaticTzInfo, pytz.tzinfo.DstTzInfo], participants: dict = {}):
+                 creator: dict, createtime: datetime.datetime, timezone: pytz.tzinfo.BaseTzInfo, participants: dict = None):
         self._name = name
         self._player = player
         self._date = date
@@ -51,144 +50,106 @@ class GameEvent:
         self._creator = creator
         self._createtime = createtime
         self._timezone = timezone
-        self._participants = participants
+        self._participants = participants or {}
 
     @property
-    def name(self) -> Union[str]:
+    def name(self) -> str:
         return self._name
     
     @name.setter
-    def name(self, value: Union[str]):
-        if not isinstance(value, (str)):
+    def name(self, value: str):
+        if not isinstance(value, str):
             raise TypeError("Value must be a string")
         self._name = value
     
     @property
-    def player(self) -> Union[int]:
+    def player(self) -> int:
         return self._player
     
     @player.setter
-    def player(self, value: Union[int]):
-        if not isinstance(value, (int)):
+    def player(self, value: int):
+        if not isinstance(value, int):
             raise TypeError("Value must be an integer")
         self._player = value
     
     @property
-    def date(self) -> Union[datetime.datetime]:
+    def date(self) -> datetime.datetime:
         return self._date
     
     @date.setter
-    def date(self, value: Union[datetime.datetime]):
-        if not isinstance(value, (datetime.datetime)):
+    def date(self, value: datetime.datetime):
+        if not isinstance(value, datetime.datetime):
             raise TypeError("Value must be a datetime")
         self._date = value
     
     @property
-    def endtime(self) -> Union[float]:
+    def endtime(self) -> float:
         return self._endtime
 
     @endtime.setter
-    def endtime(self, value: Union[float]):
-        if not isinstance(value, (float)):
+    def endtime(self, value: float):
+        if not isinstance(value, float):
             raise TypeError("Value must be a float")
         self._endtime = value
     
     @property
-    def creator(self) -> Union[dict]:
+    def creator(self) -> dict:
         return self._creator
 
     @creator.setter
-    def creator(self, value: Union[dict]):
-        if not isinstance(value, (dict)):
+    def creator(self, value: dict):
+        if not isinstance(value, dict):
             raise TypeError("Value must be a dict")
         self._creator = value
     
     @property
-    def createtime(self) -> Union[datetime.datetime]:
+    def createtime(self) -> datetime.datetime:
         return self._createtime
 
     @createtime.setter
-    def createtime(self, value: Union[datetime.datetime]):
-        if not isinstance(value, (datetime.datetime)):
+    def createtime(self, value: datetime.datetime):
+        if not isinstance(value, datetime.datetime):
             raise TypeError("Value must be a datetime")
         self._createtime = value
     
     @property
-    def timezone(self) -> Union[pytz.tzinfo.StaticTzInfo, pytz.tzinfo.DstTzInfo]:
+    def timezone(self) -> pytz.tzinfo.BaseTzInfo:
         return self._timezone
 
     @timezone.setter
-    def timezone(self, value: Union[pytz.tzinfo.StaticTzInfo, pytz.tzinfo.DstTzInfo]):
-        if not isinstance(value, (pytz.tzinfo.StaticTzInfo, pytz.tzinfo.DstTzInfo)):
-            raise TypeError("Value must be a pytz.tzinfo.StaticTzInfo or pytz.tzinfo.DstTzInfo")
+    def timezone(self, value: pytz.tzinfo.BaseTzInfo):
+        if not isinstance(value, pytz.tzinfo.BaseTzInfo):
+            raise TypeError("Value must be a pytz timezone object")
         self._timezone = value
     
     @property
-    def participants(self) -> Union[dict]:
+    def participants(self) -> dict:
         return self._participants
 
     @participants.setter
-    def participants(self, value: Union[dict]):
-        if not isinstance(value, (dict)):
+    def participants(self, value: dict):
+        if not isinstance(value, dict):
             raise TypeError("Value must be a dict")
         self._participants = value
-    
-    @classmethod
-    def from_dict(cls, data: dict):
-        """
-        Get GameEvent instance from dict
-        """
-        return cls(
-            data[cls.NAME],
-            data[cls.PLAYER],
-            datetime.datetime.fromisoformat(data[cls.DATE]),
-            data[cls.ENDTIME],
-            data[cls.CREATOR],
-            datetime.datetime.fromisoformat(data[cls.CREATETIME]),
-            pytz.timezone(data[cls.TIMEZONE]),
-            data[cls.PARTICIPANTS]
-        )
-    
-    async def get_messages(self):
-        """
-        Get messages from current GameEvent instance.
-        """
-        message_title = GameEvent.get_messages_title(self)
-        message_remaining_time = GameEvent.get_messages_remaining_time(self)
-        message_participants = GameEvent.get_messages_participants(self)
-        message_creator = GameEvent.get_messages_creator(self)
 
-        messages = (
-            f">>> ## {message_title}\n"
-            f"{message_remaining_time}\n"
-            f"```\n"
-            f"{message_participants}"
-            f"```\n"
-            f"{message_creator}"
-        )
-
-        return messages
-    
-    def get_messages_creator(self):
+    def _get_messages_creator(self) -> str:
         """
         Get the creator message from current GameEvent instance.
         """
-        creator = self.creator[GameEvent.CREATOR_DISPLAY_NAME]
+        creator = self.creator[self.CREATOR_DISPLAY_NAME]
         return f"Hosted by {creator} | React to the message to join"
 
-    def get_messages_date(self):
+    def _get_messages_date(self) -> str:
         """
         Get the date message from current GameEvent instance.
         """
-        timezone = self.timezone
-        sign, offset_hours = utils.datetime_helper.get_timezone_offsets_in_gmt(timezone)
-
+        sign, offset = datetime_helper.get_timezone_offsets_in_gmt(self.timezone)
         message_date = self.date.strftime('%-m/%d %H:%M')
-        message_date += f" GMT{sign}{offset_hours}"
+        message_date += f" GMT{sign}{offset}"
 
         return message_date
 
-    def get_messages_participants(self):
+    def _get_messages_participants(self) -> str:
         """
         Get the participants message from current GameEvent instance.
         """
@@ -196,14 +157,14 @@ class GameEvent:
         num_participants = len(self.participants)
 
         if num_participants > 0:
-            participants_list = "\n".join([f"{i+1:2}. {value}" for i, (_, value) in enumerate(self.participants.items())])
+            participants_list = "\n".join([f"{i+1}. {value}" for i, (_, value) in enumerate(self.participants.items())])
             message_participants += participants_list
         else:
             message_participants = "No participants yet."
         
         return message_participants
 
-    def get_messages_remaining_time(self):
+    def _get_messages_remaining_time(self) -> str:
         """
         Get the remaining time message from current GameEvent instance.
         """
@@ -226,19 +187,55 @@ class GameEvent:
         
         return message_remaining_time
 
-    def get_messages_title(self):
+    def _get_messages_title(self) -> str:
         """
         Get the title message from current GameEvent instance.
         """
-        message_date = GameEvent.get_messages_date(self)
+        message_date = self._get_messages_date()
         message_slots = self.player - len(self.participants)
         return f"{self.name}  {message_date} [{message_slots} Slots]"
 
-    def is_recruitment(self):
+    @classmethod
+    def from_dict(cls, data: dict):
+        """
+        Get GameEvent instance from dict
+        """
+        return cls(
+            data[cls.NAME],
+            data[cls.PLAYER],
+            datetime.datetime.fromisoformat(data[cls.DATE]),
+            data[cls.ENDTIME],
+            data[cls.CREATOR],
+            datetime.datetime.fromisoformat(data[cls.CREATETIME]),
+            pytz.timezone(data[cls.TIMEZONE]),
+            data.get(cls.PARTICIPANTS, {})
+        )
+
+    def get_messages(self) -> str:
+        """
+        Get messages from current GameEvent instance.
+        """
+        message_title = self._get_messages_title()
+        message_remaining_time = self._get_messages_remaining_time()
+        message_participants = self._get_messages_participants()
+        message_creator = self._get_messages_creator()
+
+        messages = (
+            f">>> ## {message_title}\n"
+            f"{message_remaining_time}\n"
+            f"```\n"
+            f"{message_participants}"
+            f"```\n"
+            f"{message_creator}"
+        )
+
+        return messages
+
+    def is_recruitment(self) -> tuple[bool, datetime.timedelta]:
         """
         Check if the game event is still recruitment or not.
         """
-        now = utils.datetime_helper.get_time(specific_timezone = self.timezone)
+        now = datetime.datetime.now(tz=self.timezone)
         recruitment_end_time = self.createtime + datetime.timedelta(hours=self.endtime)
         return self.date > now.replace(tzinfo=None) and recruitment_end_time > now, recruitment_end_time - now
 
@@ -256,4 +253,3 @@ class GameEvent:
             self.TIMEZONE: self._timezone.zone,
             self.PARTICIPANTS: self._participants
         }
-    

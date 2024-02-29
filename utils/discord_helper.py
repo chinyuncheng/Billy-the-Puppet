@@ -63,7 +63,7 @@ async def on_raw_reaction_add(payload, client):
             await json_helper.save(game_events)
 
             game_event = GameEvent.from_dict(value)
-            updated_message_content = await game_event.get_messages()
+            updated_message_content = game_event.get_messages()
             await message.edit(content = updated_message_content)
             break
 
@@ -92,6 +92,6 @@ async def on_raw_reaction_remove(payload, client):
             await json_helper.save(game_events)
 
             game_event = GameEvent.from_dict(value)
-            updated_message_content = await game_event.get_messages()
+            updated_message_content = game_event.get_messages()
             await message.edit(content = updated_message_content)
             break
