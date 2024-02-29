@@ -168,10 +168,10 @@ class GameEvent:
         """
         Get the remaining time message from current GameEvent instance.
         """
-        is_recruitment, remaining_time = self.is_recruitment()
+        is_recruitment_end, remaining_time = self.is_recruitment_end()
 
         message_remaining_time = 'Recruitment ends'
-        if (is_recruitment):
+        if (is_recruitment_end is not True):
             days = remaining_time.days
             hours, remainder = divmod(remaining_time.seconds, 3600)
             minutes, _ = divmod(remainder, 60)
@@ -231,13 +231,26 @@ class GameEvent:
 
         return messages
 
-    def is_recruitment(self) -> tuple[bool, datetime.timedelta]:
+    def is_expired(self) -> bool:
         """
-        Check if the game event is still recruitment or not.
+        Check if the game event is expired or not.
+        """
+        now = datetime.datetime.now(tz=self.timezone)
+        return now.replace(tzinfo=None) > self.date
+
+    def is_recruitment_end(self) -> tuple[bool, datetime.timedelta]:
+        """
+        Check if the game event recruitment ends or not.
         """
         now = datetime.datetime.now(tz=self.timezone)
         recruitment_end_time = self.createtime + datetime.timedelta(hours=self.endtime)
-        return self.date > now.replace(tzinfo=None) and recruitment_end_time > now, recruitment_end_time - now
+        return now > recruitment_end_time, recruitment_end_time - now
+    
+    def is_recruitment_full(self) -> bool:
+        """
+        Check if the game event recruitment is full or not.
+        """
+        return len(self.participants) > self.player
 
     def to_dict(self):
         """

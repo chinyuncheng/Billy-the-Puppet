@@ -22,9 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import discord
+
+import settings
 from core.game_events import GameEvent
 from utils import json_helper
-import discord
+
+logger = settings.logging.getLogger("bot")
 
 async def get_message(client, channel_id, message_id):
     """
@@ -50,22 +54,25 @@ async def on_raw_reaction_add(payload, client):
         return
     
     game_events = await json_helper.load()
-
+    game_event = None
     for key, value in game_events.items():
         if str(payload.message_id) == key:
-            participants_dict = value[GameEvent.PARTICIPANTS]
-            if payload.user_id in participants_dict:
-                break
-            
-            user = await client.fetch_user(payload.user_id)
-            participants_dict[f'{payload.user_id}'] = user.display_name
-            value[GameEvent.PARTICIPANTS] = participants_dict
-            await json_helper.save(game_events)
-
             game_event = GameEvent.from_dict(value)
+
+            if not game_event.is_recruitment_end()[0]:
+                if payload.user_id not in game_event.participants and not game_event.is_recruitment_full():
+                    user = await client.fetch_user(payload.user_id)
+                    game_event.participants[f'{payload.user_id}'] = user.display_name
+                    game_events[key] = game_event.to_dict()
+                    await json_helper.save(game_events)
+
             updated_message_content = game_event.get_messages()
             await message.edit(content = updated_message_content)
             break
+
+    if game_event is not None and (game_event.is_expired() or game_event.is_recruitment_end()[0]):
+        del game_events[key]
+        await json_helper.save(game_events)
 
 async def on_raw_reaction_remove(payload, client):
     """
@@ -78,20 +85,21 @@ async def on_raw_reaction_remove(payload, client):
         return
     
     game_events = await json_helper.load()
-
+    game_event = None
     for key, value in game_events.items():
         if str(payload.message_id) == key:
-            participants_dict = value[GameEvent.PARTICIPANTS]
-
-            key = f'{payload.user_id}'
-            if key not in participants_dict:
-                break
-
-            del participants_dict[key]
-            value[GameEvent.PARTICIPANTS] = participants_dict
-            await json_helper.save(game_events)
-
             game_event = GameEvent.from_dict(value)
+
+            if not game_event.is_recruitment_end()[0]:
+                if f'{payload.user_id}' in game_event.participants:
+                    del game_event.participants[f'{payload.user_id}']
+                    game_events[key] = game_event.to_dict()
+                    await json_helper.save(game_events)
+
             updated_message_content = game_event.get_messages()
             await message.edit(content = updated_message_content)
             break
+
+    if game_event is not None and (game_event.is_expired() or game_event.is_recruitment_end()[0]):
+        del game_events[key]
+        await json_helper.save(game_events)
