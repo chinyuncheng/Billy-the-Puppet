@@ -75,6 +75,20 @@ async def host_command(
 ):
     await core_commands.host(interaction, name, player, date, endtime, timezone)
 
+@bot.tree.command(
+    name="list",
+    description="List existing scheduled game events.",
+    guild=settings.GUILD_ID
+)
+@app_commands.describe(available="To filter the game events that are still in recruitment.")
+@app_commands.describe(creator="To filter the game events that are created on your own.")
+async def list_command(
+    interaction: discord.Integration,
+    available: bool = False,
+    creator: bool = False
+):
+    await core_commands.list(interaction, available, creator)
+
 if settings.DISCORD_BOT_TOKEN  is None:
     logger.error("Not found DISCORD_BOT_TOKEN in environment variable.")
     exit(1)

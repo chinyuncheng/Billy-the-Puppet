@@ -119,31 +119,34 @@ async def host(
         message = f"An error occurred while updating the game session details. Please try again later."
         await message.channel.send(message)
 
-async def list(message):
+async def list(
+    interaction: discord.Interaction,
+    available: bool,
+    creator: bool
+):
     """
     List existing scheduled game events.
     """
-    content = message.content.replace('host ', '')
-    parts = content.split(' ')
-
-    filter_available = False
-    filter_creator = False
-
-    for part in parts:
-        if '-a' in part:
-            filter_available = True
-        elif '-c' in part:
-            filter_creator = True
-
     game_events_list = []
     game_events = await json_helper.load()
 
     for _, value in game_events.items():
-        timezone = pytz.timezone(value[GameEvent.TIMEZONE])
-        now = datetime.datetime.now(tz=timezone)
+        game_event = GameEvent.from_dict(value)
+
+        if (game_event.is_expired()):
+            game_event = None
+        if (game_event is not None and available and (game_event.is_recruitment_end()[0] or game_event.is_recruitment_full())):
+            game_event = None
+        if (game_event is not None and creator and interaction.user.id != game_event.creator[GameEvent.CREATOR_ID]):
+            game_event = None
+
+        if (game_event is not None):
+            game_events_list.append(game_event)
 
     if game_events_list:
-        await message.channel.send('Scheduled game events:')
-        await message.channel.send('\n'.join(game_events_list))
+        list_message = ">>> ## Scheduled game events\n"
+        for item in game_events_list:
+            list_message += f"```{item._get_messages_title()}```"
+        await interaction.response.send_message(f"{list_message}", ephemeral=True)
     else:
-        await message.channel.send('No scheduled game events found.')
+        await interaction.response.send_message("No scheduled game events found.", ephemeral=True)

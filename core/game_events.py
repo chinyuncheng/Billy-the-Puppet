@@ -244,13 +244,13 @@ class GameEvent:
         """
         now = datetime.datetime.now(tz=self.timezone)
         recruitment_end_time = self.createtime + datetime.timedelta(hours=self.endtime)
-        return now > recruitment_end_time, recruitment_end_time - now
+        return now > recruitment_end_time or self.is_expired(), recruitment_end_time - now
     
     def is_recruitment_full(self) -> bool:
         """
         Check if the game event recruitment is full or not.
         """
-        return len(self.participants) > self.player
+        return len(self.participants) >= self.player
 
     def to_dict(self):
         """

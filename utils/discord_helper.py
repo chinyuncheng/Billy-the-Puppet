@@ -70,7 +70,7 @@ async def on_raw_reaction_add(payload, client):
             await message.edit(content = updated_message_content)
             break
 
-    if game_event is not None and (game_event.is_expired() or game_event.is_recruitment_end()[0]):
+    if game_event is not None and game_event.is_recruitment_end()[0]:
         del game_events[key]
         await json_helper.save(game_events)
 
@@ -100,6 +100,6 @@ async def on_raw_reaction_remove(payload, client):
             await message.edit(content = updated_message_content)
             break
 
-    if game_event is not None and (game_event.is_expired() or game_event.is_recruitment_end()[0]):
+    if game_event is not None and game_event.is_recruitment_end()[0]:
         del game_events[key]
         await json_helper.save(game_events)
