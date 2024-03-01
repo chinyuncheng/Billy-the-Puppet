@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 import discord
+import traceback
 from discord import app_commands
 from discord.ext import commands
 
@@ -33,6 +34,13 @@ from utils import discord_helper
 logger = settings.logging.getLogger("bot")
 
 bot = commands.Bot(command_prefix="/", intents=discord.Intents.all())
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        return
+    logger.error(f"Error in command '{ctx.command}': {error}")
+    traceback.print_exc()
 
 @bot.event
 async def on_ready():
@@ -89,8 +97,12 @@ async def list_command(
 ):
     await core_commands.list(interaction, available, creator)
 
-if settings.DISCORD_BOT_TOKEN  is None:
-    logger.error("Not found DISCORD_BOT_TOKEN in environment variable.")
-    exit(1)
-
-bot.run(settings.DISCORD_BOT_TOKEN)
+if __name__ == "__main__":
+    if settings.DISCORD_BOT_TOKEN is None:
+        logger.error("DISCORD_BOT_TOKEN not found in environment variable.")
+        exit(1)
+    try:
+        bot.run(settings.DISCORD_BOT_TOKEN)
+    except Exception as e:
+        logger.error(f"An error occurred while running the bot: {e}")
+        traceback.print_exc()
