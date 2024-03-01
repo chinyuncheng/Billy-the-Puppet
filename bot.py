@@ -30,6 +30,7 @@ from discord.ext import commands
 
 import core.commands as core_commands
 import settings
+from languages import Language
 from utils import discord_helper, game_event_helper
 
 logger = settings.logging.getLogger("bot")
@@ -59,7 +60,7 @@ async def on_raw_reaction_remove(payload):
 
 @bot.tree.command(
     name="help",
-    description="Show all the available commands.",
+    description=Language.get_translation(Language.COMMAND_HELP_DESCRIPTION, settings.LANGUAGE),
     guild=settings.GUILD_ID,
 )
 async def command_help(interaction: discord.Interaction):
@@ -67,14 +68,14 @@ async def command_help(interaction: discord.Interaction):
 
 @bot.tree.command(
     name="host",
-    description="Schedule a game event.",
+    description=Language.get_translation(Language.COMMAND_HOST_DESCRIPTION, settings.LANGUAGE),
     guild=settings.GUILD_ID
 )
-@app_commands.describe(name="The game event name.")
-@app_commands.describe(player="The number of players.")
-@app_commands.describe(date="The game event date. Please provide in the format \"YYYY-MM-DD HH:MM\".")
-@app_commands.describe(endtime="The recruitment period will end in (hours).")
-@app_commands.describe(timezone="The timezone of the game event.")
+@app_commands.describe(name=Language.get_translation(Language.COMMAND_HOST_PARAM_NAME, settings.LANGUAGE))
+@app_commands.describe(player=Language.get_translation(Language.COMMAND_HOST_PARAM_PLAYER, settings.LANGUAGE))
+@app_commands.describe(date=Language.get_translation(Language.COMMAND_HOST_PARAM_DATE, settings.LANGUAGE))
+@app_commands.describe(endtime=Language.get_translation(Language.COMMAND_HOST_PARAM_ENDTIME, settings.LANGUAGE))
+@app_commands.describe(timezone=Language.get_translation(Language.COMMAND_HOST_PARAM_TIMEZONE, settings.LANGUAGE))
 async def command_host(
     interaction: discord.Interaction,
     name: str,
@@ -87,11 +88,11 @@ async def command_host(
 
 @bot.tree.command(
     name="list",
-    description="List existing scheduled game events.",
+    description=Language.get_translation(Language.COMMAND_LIST_DESCRIPTION, settings.LANGUAGE),
     guild=settings.GUILD_ID
 )
-@app_commands.describe(available="To filter the game events that are still in recruitment.")
-@app_commands.describe(creator="To filter the game events that are created on your own.")
+@app_commands.describe(available=Language.get_translation(Language.COMMAND_LIST_PARAM_AVAILABLE, settings.LANGUAGE))
+@app_commands.describe(creator=Language.get_translation(Language.COMMAND_LIST_PARAM_CREATOR, settings.LANGUAGE))
 async def command_list(
     interaction: discord.Integration,
     available: bool = False,

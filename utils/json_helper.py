@@ -23,21 +23,31 @@ SOFTWARE.
 """
 
 import json
-import settings
 
-async def save(data, path: str=settings.GAME_EVENTS_FILE_PATH):
+async def save(data, path: str):
     """
     Save data to a JSON file.
     """
-    with open(path, 'w') as file:
+    with open(path, "w", encoding="utf-8") as file:
         json.dump(data, file)
 
-async def load(path: str=settings.GAME_EVENTS_FILE_PATH):
+async def load(path: str):
     """
     Load data from a JSON file.
     """
     try:
-        with open(path, 'r') as file:
+        with open(path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        data = {}
+    return data
+
+def load_without_async(path: str):
+    """
+    Load data from a JSON file.
+    """
+    try:
+        with open(path, "r", encoding="utf-8") as file:
             data = json.load(file)
     except FileNotFoundError:
         data = {}

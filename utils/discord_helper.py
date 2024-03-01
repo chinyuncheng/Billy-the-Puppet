@@ -53,7 +53,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: d
     if payload.emoji.name != '⚔️':
         return
 
-    game_events = await json_helper.load()
+    game_events = await json_helper.load(settings.GAME_EVENTS_FILE_PATH)
     game_event = None
     for key, value in game_events.items():
         if str(payload.message_id) == key:
@@ -64,7 +64,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: d
                     user = await client.fetch_user(payload.user_id)
                     game_event.participants[f'{payload.user_id}'] = user.display_name
                     game_events[key] = game_event.to_dict()
-                    await json_helper.save(game_events)
+                    await json_helper.save(game_events, settings.GAME_EVENTS_FILE_PATH)
 
             updated_message_content = game_event.get_messages()
             await message.edit(content = updated_message_content)
@@ -72,7 +72,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: d
 
     if game_event is not None and game_event.is_recruitment_end()[0]:
         del game_events[key]
-        await json_helper.save(game_events)
+        await json_helper.save(game_events, settings.GAME_EVENTS_FILE_PATH)
 
 async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client: discord.Client):
     """
@@ -84,7 +84,7 @@ async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client
     if payload.emoji.name != '⚔️':
         return
 
-    game_events = await json_helper.load()
+    game_events = await json_helper.load(settings.GAME_EVENTS_FILE_PATH)
     game_event = None
     for key, value in game_events.items():
         if str(payload.message_id) == key:
@@ -94,7 +94,7 @@ async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client
                 if f'{payload.user_id}' in game_event.participants:
                     del game_event.participants[f'{payload.user_id}']
                     game_events[key] = game_event.to_dict()
-                    await json_helper.save(game_events)
+                    await json_helper.save(game_events, settings.GAME_EVENTS_FILE_PATH)
 
             updated_message_content = game_event.get_messages()
             await message.edit(content = updated_message_content)
@@ -102,4 +102,4 @@ async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client
 
     if game_event is not None and game_event.is_recruitment_end()[0]:
         del game_events[key]
-        await json_helper.save(game_events)
+        await json_helper.save(game_events, settings.GAME_EVENTS_FILE_PATH)

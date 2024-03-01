@@ -34,7 +34,7 @@ async def delete_recruitment_end_game_events(bot: commands.Bot):
     """
     Update the message and delete the game event from the JSON file if its recruitment ends
     """
-    game_events = await json_helper.load()
+    game_events = await json_helper.load(settings.GAME_EVENTS_FILE_PATH)
     list_to_delete = []
 
     for key, value in game_events.items():
@@ -51,4 +51,4 @@ async def delete_recruitment_end_game_events(bot: commands.Bot):
 
     for item in list_to_delete:
         del game_events[item]
-    await json_helper.save(game_events)
+    await json_helper.save(game_events, settings.GAME_EVENTS_FILE_PATH)
