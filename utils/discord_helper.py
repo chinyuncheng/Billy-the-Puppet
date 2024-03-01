@@ -30,7 +30,7 @@ from utils import json_helper
 
 logger = settings.logging.getLogger("bot")
 
-async def get_message(client: discord.Client, channel_id: int, message_id: int):
+async def get_message(client: discord.Client, channel_id: int, message_id: int) -> discord.Message:
     """
     Get message from channel through message id.
     """
@@ -52,7 +52,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: d
         return
     if payload.emoji.name != '⚔️':
         return
-    
+
     game_events = await json_helper.load()
     game_event = None
     for key, value in game_events.items():
@@ -83,7 +83,7 @@ async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client
         return
     if payload.emoji.name != '⚔️':
         return
-    
+
     game_events = await json_helper.load()
     game_event = None
     for key, value in game_events.items():

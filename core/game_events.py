@@ -55,33 +55,33 @@ class GameEvent:
     @property
     def name(self) -> str:
         return self._name
-    
+
     @name.setter
     def name(self, value: str):
         if not isinstance(value, str):
             raise TypeError("Value must be a string")
         self._name = value
-    
+
     @property
     def player(self) -> int:
         return self._player
-    
+
     @player.setter
     def player(self, value: int):
         if not isinstance(value, int):
             raise TypeError("Value must be an integer")
         self._player = value
-    
+
     @property
     def date(self) -> datetime.datetime:
         return self._date
-    
+
     @date.setter
     def date(self, value: datetime.datetime):
         if not isinstance(value, datetime.datetime):
             raise TypeError("Value must be a datetime")
         self._date = value
-    
+
     @property
     def endtime(self) -> float:
         return self._endtime
@@ -91,7 +91,7 @@ class GameEvent:
         if not isinstance(value, float):
             raise TypeError("Value must be a float")
         self._endtime = value
-    
+
     @property
     def creator(self) -> dict:
         return self._creator
@@ -101,7 +101,7 @@ class GameEvent:
         if not isinstance(value, dict):
             raise TypeError("Value must be a dict")
         self._creator = value
-    
+
     @property
     def createtime(self) -> datetime.datetime:
         return self._createtime
@@ -111,7 +111,7 @@ class GameEvent:
         if not isinstance(value, datetime.datetime):
             raise TypeError("Value must be a datetime")
         self._createtime = value
-    
+
     @property
     def timezone(self) -> pytz.tzinfo.BaseTzInfo:
         return self._timezone
@@ -121,7 +121,7 @@ class GameEvent:
         if not isinstance(value, pytz.tzinfo.BaseTzInfo):
             raise TypeError("Value must be a pytz timezone object")
         self._timezone = value
-    
+
     @property
     def participants(self) -> dict:
         return self._participants
@@ -161,7 +161,7 @@ class GameEvent:
             message_participants += participants_list
         else:
             message_participants = "No participants yet."
-        
+
         return message_participants
 
     def _get_messages_remaining_time(self) -> str:
@@ -247,7 +247,7 @@ class GameEvent:
         now = datetime.datetime.now(tz=self.timezone)
         recruitment_end_time = self.createtime + datetime.timedelta(hours=self.endtime)
         return now > recruitment_end_time or self.is_expired(), recruitment_end_time - now
-    
+
     def is_recruitment_full(self) -> bool:
         """
         Check if the game event recruitment is full or not.

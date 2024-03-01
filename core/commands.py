@@ -60,7 +60,7 @@ async def host(
         message = f"Please provide player as a positive integer."
         await interaction.response.send_message(message, ephemeral=True)
         return
-    
+
     if endtime <= 0.0:
         message = f"Please provide endtime as a positive float."
         await interaction.response.send_message(message, ephemeral=True)
@@ -82,7 +82,7 @@ async def host(
             message = f"Please refer to the website for all available timezone: https://gist.github.com/heyalexej/8bf688fd67d7199be4a1682b3eec7568."
             await interaction.response.send_message(message, ephemeral=True)
             return
-    
+
     user = interaction.user
     creator = {
         GameEvent.CREATOR_ID: user.id,
@@ -99,7 +99,7 @@ async def host(
         createtime = now,
         timezone = timezone
     )
-    
+
     response_message_content = 'Received.'
     await interaction.response.send_message(response_message_content, delete_after=5)
 

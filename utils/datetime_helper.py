@@ -26,11 +26,11 @@ import datetime
 import pytz
 import settings
 
-def get_timezone_offsets_in_gmt(timezone=pytz.timezone(settings.TIMEZONE)):
+def get_timezone_offsets_in_gmt(timezone: pytz.tzinfo.BaseTzInfo=pytz.timezone(settings.TIMEZONE)) -> tuple[str, int]:
     """
     Get UTC offset in GMT format.
     """
-    sign = '+' if timezone.utcoffset(datetime.datetime.now()) >= datetime.timedelta(0) else '-'
+    sign = "+" if timezone.utcoffset(datetime.datetime.now()) >= datetime.timedelta(0) else "-"
     offset = timezone.utcoffset(datetime.datetime.now()).seconds // 3600
 
     return sign, offset
