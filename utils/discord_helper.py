@@ -30,7 +30,7 @@ from utils import json_helper
 
 logger = settings.logging.getLogger("bot")
 
-async def get_message(client, channel_id, message_id):
+async def get_message(client: discord.Client, channel_id: int, message_id: int):
     """
     Get message from channel through message id.
     """
@@ -38,10 +38,10 @@ async def get_message(client, channel_id, message_id):
         channel = await client.fetch_channel(channel_id)
         return await channel.fetch_message(message_id)
     except discord.NotFound:
-        print(f"Message with ID {message_id} not found.")
+        logger.warning(f"Message with ID {message_id} not found.")
         return None
 
-async def on_raw_reaction_add(payload, client):
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: discord.Client):
     """
     The on_raw_reaction_add extension version, add function signature `client`.
     """
@@ -74,7 +74,7 @@ async def on_raw_reaction_add(payload, client):
         del game_events[key]
         await json_helper.save(game_events)
 
-async def on_raw_reaction_remove(payload, client):
+async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client: discord.Client):
     """
     The on_raw_reaction_remove extension version, add function signature `client`.
     """

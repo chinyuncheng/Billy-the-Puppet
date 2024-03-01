@@ -30,8 +30,10 @@ from logging.config import dictConfig
 
 load_dotenv()
 
+CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
 DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 GAME_EVENTS_FILE_PATH = 'game_events.json'
+GAME_EVENTS_DELETION_PERIOD_IN_HOURS = 72
 GUILD_ID = discord.Object(id=int(os.getenv("GUILD_ID")))
 TIMEZONE = 'Asia/Taipei'
 

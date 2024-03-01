@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import asyncio
 import discord
 import traceback
 from discord import app_commands
@@ -29,7 +30,7 @@ from discord.ext import commands
 
 import core.commands as core_commands
 import settings
-from utils import discord_helper
+from utils import discord_helper, game_event_helper
 
 logger = settings.logging.getLogger("bot")
 
@@ -46,6 +47,7 @@ async def on_command_error(ctx, error):
 async def on_ready():
     logger.info(f"{bot.user} (ID: {bot.user.id})".format(bot))
     await bot.tree.sync(guild=settings.GUILD_ID)
+    await schedule_task()
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -60,7 +62,7 @@ async def on_raw_reaction_remove(payload):
     description="Show all the available commands.",
     guild=settings.GUILD_ID,
 )
-async def help_command(interaction: discord.Interaction):
+async def command_help(interaction: discord.Interaction):
     await core_commands.help(interaction)
 
 @bot.tree.command(
@@ -73,7 +75,7 @@ async def help_command(interaction: discord.Interaction):
 @app_commands.describe(date="The game event date. Please provide in the format \"YYYY-MM-DD HH:MM\".")
 @app_commands.describe(endtime="The recruitment period will end in (hours).")
 @app_commands.describe(timezone="The timezone of the game event.")
-async def host_command(
+async def command_host(
     interaction: discord.Interaction,
     name: str,
     player: int,
@@ -90,12 +92,21 @@ async def host_command(
 )
 @app_commands.describe(available="To filter the game events that are still in recruitment.")
 @app_commands.describe(creator="To filter the game events that are created on your own.")
-async def list_command(
+async def command_list(
     interaction: discord.Integration,
     available: bool = False,
     creator: bool = False
 ):
     await core_commands.list(interaction, available, creator)
+
+async def schedule_task():
+    hours_in_seconds = 3600
+    while True:
+        await scheduled_task()
+        await asyncio.sleep(settings.GAME_EVENTS_DELETION_PERIOD_IN_HOURS * hours_in_seconds)
+
+async def scheduled_task():
+    await game_event_helper.delete_recruitment_end_game_events(bot)
 
 if __name__ == "__main__":
     if settings.DISCORD_BOT_TOKEN is None:
