@@ -170,21 +170,23 @@ class GameEvent:
         """
         is_recruitment_end, remaining_time = self.is_recruitment_end()
 
-        message_remaining_time = 'Recruitment ends'
-        if (is_recruitment_end is not True):
+        message_remaining_time = "Recruitment ends"
+        if not is_recruitment_end:
             days = remaining_time.days
             hours, remainder = divmod(remaining_time.seconds, 3600)
-            minutes, _ = divmod(remainder, 60)
-            
-            message_remaining_time += f" in "
+            minutes, seconds = divmod(remainder, 60)
+
+            message_remaining_time += " in "
             if days > 0:
-                message_remaining_time += f"{days} days "
+                message_remaining_time += f"{days} day " if days == 1 else f"{days} days "
             if hours > 0:
-                message_remaining_time += f"{hours} hrs "
+                message_remaining_time += f"{hours} hr " if hours == 1 else f"{hours} hrs "
             if minutes > 0:
-                message_remaining_time += f"{minutes} mins"
-            message_remaining_time += f"\nfrom when this message was sent"
-        
+                message_remaining_time += f"{minutes} min " if minutes == 1 else f"{minutes} mins "
+            if seconds > 0:
+                message_remaining_time += f"{seconds} sec" if seconds == 1 else f"{seconds} secs"
+            message_remaining_time += "\nfrom when this message was sent"
+
         return message_remaining_time
 
     def _get_messages_title(self) -> str:
