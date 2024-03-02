@@ -22,15 +22,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import datetime
-import pytz
-import settings
+import os
 
-def get_timezone_offsets_in_gmt(timezone: pytz.tzinfo.BaseTzInfo=pytz.timezone(settings.DEFAULT_TIMEZONE)) -> tuple[str, int]:
+def create_folder(path: str, folder_name: str) -> str:
     """
-    Get UTC offset in GMT format.
+    Create a new folder for the specific path
     """
-    sign = "+" if timezone.utcoffset(datetime.datetime.now()) >= datetime.timedelta(0) else "-"
-    offset = timezone.utcoffset(datetime.datetime.now()).seconds // 3600
+    new_folder_path = os.path.join(path, folder_name)
+    os.makedirs(new_folder_path, exist_ok=True)
+    return new_folder_path
 
-    return sign, offset
+def get_files(folder_path, file_extension: str = None) -> list[str]:
+    """
+    Get all files with the specific file extension
+    """
+    data = []
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            if file_extension and os.path.basename(file).find(file_extension) == -1:
+                continue
+            file_path = os.path.join(root, file)
+            data.append(file_path)
+    return data

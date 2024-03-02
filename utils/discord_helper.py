@@ -24,9 +24,10 @@ SOFTWARE.
 
 import discord
 
-import settings
 from core.game_events import GameEvent
+from core.guild_infos import GuildInfo
 from utils import json_helper
+import settings
 
 logger = settings.logging.getLogger("bot")
 
@@ -41,7 +42,7 @@ async def get_message(client: discord.Client, channel_id: int, message_id: int) 
         logger.warning(f"Message with ID {message_id} not found.")
         return None
 
-async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: discord.Client):
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: discord.Client, guildinfo: GuildInfo):
     """
     The on_raw_reaction_add extension version, add function signature `client`.
     """
@@ -53,8 +54,10 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: d
     if payload.emoji.name != '⚔️':
         return
 
-    game_events = await json_helper.load(settings.GAME_EVENTS_FILE_PATH)
+    game_event_json_path = guildinfo.get_game_event_json_path(payload.channel_id)
+    game_events = await json_helper.load(game_event_json_path)
     game_event = None
+
     for key, value in game_events.items():
         if str(payload.message_id) == key:
             game_event = GameEvent.from_dict(value)
@@ -64,17 +67,17 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: d
                     user = await client.fetch_user(payload.user_id)
                     game_event.participants[f'{payload.user_id}'] = user.display_name
                     game_events[key] = game_event.to_dict()
-                    await json_helper.save(game_events, settings.GAME_EVENTS_FILE_PATH)
+                    await json_helper.save(game_events, game_event_json_path)
 
-            updated_message_content = game_event.get_messages()
+            updated_message_content = game_event.get_messages(guildinfo.language)
             await message.edit(content = updated_message_content)
             break
 
     if game_event is not None and game_event.is_recruitment_end()[0]:
         del game_events[key]
-        await json_helper.save(game_events, settings.GAME_EVENTS_FILE_PATH)
+        await json_helper.save(game_events, game_event_json_path)
 
-async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client: discord.Client):
+async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client: discord.Client, guildinfo: GuildInfo):
     """
     The on_raw_reaction_remove extension version, add function signature `client`.
     """
@@ -84,8 +87,10 @@ async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client
     if payload.emoji.name != '⚔️':
         return
 
-    game_events = await json_helper.load(settings.GAME_EVENTS_FILE_PATH)
+    game_event_json_path = guildinfo.get_game_event_json_path(payload.channel_id)
+    game_events = await json_helper.load(game_event_json_path)
     game_event = None
+
     for key, value in game_events.items():
         if str(payload.message_id) == key:
             game_event = GameEvent.from_dict(value)
@@ -94,12 +99,12 @@ async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client
                 if f'{payload.user_id}' in game_event.participants:
                     del game_event.participants[f'{payload.user_id}']
                     game_events[key] = game_event.to_dict()
-                    await json_helper.save(game_events, settings.GAME_EVENTS_FILE_PATH)
+                    await json_helper.save(game_events, game_event_json_path)
 
-            updated_message_content = game_event.get_messages()
+            updated_message_content = game_event.get_messages(guildinfo.language)
             await message.edit(content = updated_message_content)
             break
 
     if game_event is not None and game_event.is_recruitment_end()[0]:
         del game_events[key]
-        await json_helper.save(game_events, settings.GAME_EVENTS_FILE_PATH)
+        await json_helper.save(game_events, game_event_json_path)

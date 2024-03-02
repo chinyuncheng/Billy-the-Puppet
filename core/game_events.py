@@ -33,16 +33,16 @@ class GameEvent:
     """
     The game event class for saving details.
     """
-    NAME = 'name'
-    PLAYER = 'player'
-    DATE = 'date'
-    ENDTIME = 'endtime'
-    CREATOR = 'creator'
-    CREATOR_ID = 'id'
-    CREATOR_DISPLAY_NAME = 'display_name'
-    CREATETIME = 'createtime'
-    TIMEZONE = 'timezone'
-    PARTICIPANTS = 'participants'
+    NAME = "name"
+    PLAYER = "player"
+    DATE = "date"
+    ENDTIME = "endtime"
+    CREATOR = "creator"
+    CREATOR_ID = "id"
+    CREATOR_DISPLAY_NAME = "display_name"
+    CREATETIME = "createtime"
+    TIMEZONE = "timezone"
+    PARTICIPANTS = "participants"
 
     def __init__(self, name: str, player: int, date: datetime.datetime, endtime: float,
                  creator: dict, createtime: datetime.datetime, timezone: pytz.tzinfo.BaseTzInfo, participants: dict = None):
@@ -135,13 +135,13 @@ class GameEvent:
             raise TypeError("Value must be a dict")
         self._participants = value
 
-    def _get_messages_creator(self) -> str:
+    def _get_messages_creator(self, language: str) -> str:
         """
         Get the creator message from current GameEvent instance.
         """
         creator = self.creator[self.CREATOR_DISPLAY_NAME]
-        message_host = f"{Language.get_translation(Language.MESSAGE_HOST_BY, settings.LANGUAGE)} {creator}"
-        message_react_to_join = f"{Language.get_translation(Language.MESSAGE_REACT_TO_JOIN, settings.LANGUAGE)}"
+        message_host = f"{Language.get_translation(Language.MESSAGE_HOST_BY, language)} {creator}"
+        message_react_to_join = f"{Language.get_translation(Language.MESSAGE_REACT_TO_JOIN, language)}"
         return f"{message_host} | {message_react_to_join}"
 
     def _get_messages_date(self) -> str:
@@ -154,7 +154,7 @@ class GameEvent:
 
         return message_date
 
-    def _get_messages_participants(self) -> str:
+    def _get_messages_participants(self, language: str) -> str:
         """
         Get the participants message from current GameEvent instance.
         """
@@ -165,60 +165,60 @@ class GameEvent:
             participants_list = "\n".join([f"{i+1}. {value}" for i, (_, value) in enumerate(self.participants.items())])
             message_participants += participants_list
         else:
-            message_participants = Language.get_translation(Language.MESSAGE_NO_PARTICIPANTS, settings.LANGUAGE)
+            message_participants = Language.get_translation(Language.MESSAGE_NO_PARTICIPANTS, language)
 
         return message_participants
 
-    def _get_messages_remaining_time(self) -> str:
+    def _get_messages_remaining_time(self, language: str) -> str:
         """
         Get the remaining time message from current GameEvent instance.
         """
         is_recruitment_end, remaining_time = self.is_recruitment_end()
 
-        message_remaining_time = Language.get_translation(Language.MESSAGE_RECRUITMENT_ENDS, settings.LANGUAGE)
+        message_remaining_time = Language.get_translation(Language.MESSAGE_RECRUITMENT_ENDS, language)
         if not is_recruitment_end:
             days = remaining_time.days
             hours, remainder = divmod(remaining_time.seconds, 3600)
             minutes, seconds = divmod(remainder, 60)
 
-            message_remaining_time += Language.get_translation(Language.MESSAGE_RECRUITMENT_ENDS_IN, settings.LANGUAGE)
+            message_remaining_time += Language.get_translation(Language.MESSAGE_RECRUITMENT_ENDS_IN, language)
             if days > 0:
                 message = f"{days}"
                 if days == 1:
-                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_DAY, settings.LANGUAGE)
+                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_DAY, language)
                 else:
-                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_DAYS, settings.LANGUAGE)
+                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_DAYS, language)
                 message_remaining_time += message
             if hours > 0:
                 message = f"{hours}"
                 if hours == 1:
-                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_HR, settings.LANGUAGE)
+                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_HR, language)
                 else:
-                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_HRS, settings.LANGUAGE)
+                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_HRS, language)
                 message_remaining_time += message
             if minutes > 0:
                 message = f"{minutes}"
                 if hours == 1:
-                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_MIN, settings.LANGUAGE)
+                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_MIN, language)
                 else:
-                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_MINS, settings.LANGUAGE)
+                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_MINS, language)
                 message_remaining_time += message
             if seconds > 0:
                 message = f"{seconds}"
                 if hours == 1:
-                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_SEC, settings.LANGUAGE)
+                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_SEC, language)
                 else:
-                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_SECS, settings.LANGUAGE)
+                    message += Language.get_translation(Language.MESSAGE_REMAINING_TIME_SECS, language)
                 message_remaining_time += message
 
         return message_remaining_time
 
-    def _get_messages_title(self) -> str:
+    def _get_messages_title(self, language: str) -> str:
         """
         Get the title message from current GameEvent instance.
         """
         message_date = self._get_messages_date()
-        message_slots = f"{self.player - len(self.participants)} {Language.get_translation(Language.MESSAGE_SLOTS, settings.LANGUAGE)}"
+        message_slots = f"{self.player - len(self.participants)} {Language.get_translation(Language.MESSAGE_SLOTS, language)}"
         return f"{self.name}  {message_date} [{message_slots}]"
 
     @classmethod
@@ -237,14 +237,14 @@ class GameEvent:
             data.get(cls.PARTICIPANTS, {})
         )
 
-    def get_messages(self) -> str:
+    def get_messages(self, language: str) -> str:
         """
         Get messages from current GameEvent instance.
         """
-        message_title = self._get_messages_title()
-        message_remaining_time = self._get_messages_remaining_time()
-        message_participants = self._get_messages_participants()
-        message_creator = self._get_messages_creator()
+        message_title = self._get_messages_title(language)
+        message_remaining_time = self._get_messages_remaining_time(language)
+        message_participants = self._get_messages_participants(language)
+        message_creator = self._get_messages_creator(language)
 
         messages = (
             f">>> ## {message_title}\n"

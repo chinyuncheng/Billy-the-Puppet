@@ -22,21 +22,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import discord
-import logging
-import os
 from dotenv import load_dotenv
 from logging.config import dictConfig
+import logging
+import os
 
 load_dotenv()
 
-CHANNEL_ID = int(os.getenv("CHANNEL_ID"))
+ALLOW_ADD_NEW_GUILD = True
+DEFAULT_LANGUAGE = "en-us"
+DEFAULT_TIMEZONE = "Asia/Taipei"
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-GAME_EVENTS_FILE_PATH = "game_events.json"
 GAME_EVENTS_DELETION_PERIOD_IN_HOURS = 72
-GUILD_ID = discord.Object(id=int(os.getenv("GUILD_ID")))
-LANGUAGE = "zh-tw"
-TIMEZONE = "Asia/Taipei"
 
 LOGGING_CONFIG = {
     "version": 1,

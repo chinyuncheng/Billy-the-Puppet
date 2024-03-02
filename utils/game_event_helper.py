@@ -23,9 +23,11 @@ SOFTWARE.
 """
 
 from discord.ext import commands
+import os
 
 from core.game_events import GameEvent
-from utils import discord_helper, json_helper
+from core.guild_infos import GuildInfo
+from utils import discord_helper, json_helper, os_helper
 import settings
 
 logger = settings.logging.getLogger("bot")
@@ -34,21 +36,34 @@ async def delete_recruitment_end_game_events(bot: commands.Bot):
     """
     Update the message and delete the game event from the JSON file if its recruitment ends
     """
-    game_events = await json_helper.load(settings.GAME_EVENTS_FILE_PATH)
-    list_to_delete = []
+    json_file_list = os_helper.get_files(GuildInfo.ROOT_FOLDER, ".json")
 
-    for key, value in game_events.items():
-        game_event = GameEvent.from_dict(value)
+    for json_file in json_file_list:
+        if json_file.find(GuildInfo.GUILD_INFO_JSON) != -1:
+            continue
 
-        if game_event.is_recruitment_end()[0]:
-            list_to_delete.append(key)
-            message = await discord_helper.get_message(bot, settings.CHANNEL_ID, int(key))
+        parent_folder_path = os.path.dirname(json_file)
+        guildinfo_json = await json_helper.load(f"{parent_folder_path}/{GuildInfo.GUILD_INFO_JSON}")
+        guildinfo = GuildInfo.from_dict(guildinfo_json)
 
-            if message:
-                game_event = GameEvent.from_dict(value)
-                updated_message_content = game_event.get_messages()
-                await message.edit(content = updated_message_content)
+        filename_with_extension = os.path.basename(json_file)
+        filename_without_extension = os.path.splitext(filename_with_extension)[0]
 
-    for item in list_to_delete:
-        del game_events[item]
-    await json_helper.save(game_events, settings.GAME_EVENTS_FILE_PATH)
+        game_events = await json_helper.load(json_file)
+        list_to_delete = []
+
+        for key, value in game_events.items():
+            game_event = GameEvent.from_dict(value)
+
+            if game_event.is_recruitment_end()[0]:
+                list_to_delete.append(key)
+                message = await discord_helper.get_message(bot, int(filename_without_extension), int(key))
+
+                if message:
+                    game_event = GameEvent.from_dict(value)
+                    updated_message_content = game_event.get_messages(guildinfo.language)
+                    await message.edit(content = updated_message_content)
+
+        for item in list_to_delete:
+            del game_events[item]
+        await json_helper.save(game_events, json_file)

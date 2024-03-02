@@ -23,12 +23,12 @@ SOFTWARE.
 """
 
 from utils import json_helper
+import settings
 
 class Language:
     """
     Provide multiple languages to display.
     """
-    DEFAULT_LANGUAGE = "en-us"
     LANGUAGES_FOLDER = "assets/languages/"
 
     COMMAND_HELP_DESCRIPTION = "command_help_description"
@@ -51,6 +51,13 @@ class Language:
     COMMAND_LIST_PARAM_CREATOR = "command_list_param_creator"
     COMMAND_LIST_RESULT = "command_list_result"
     COMMAND_LIST_RESULT_NOT_FOUND = "command_list_result_not_found"
+    COMMAND_MODIFY_DESCRIPTION = "command_modify_description"
+    COMMAND_MODIFY_PARAM_LANGUAGE = "command_modify_param_language"
+    COMMAND_MODIFY_PARAM_LANGUAGE_HINT = "command_modify_param_language_hint"
+    COMMAND_MODIFY_PARAM_TIMEZONE = "command_modify_param_timezone"
+    COMMAND_MODIFY_PARAM_TIMEZONE_HINT = "command_modify_param_timezone_hint"
+    COMMAND_MODIFY_PROCESS = "command_modify_process"
+    COMMAND_MODIFY_RESTRICTION = "command_modify_restriction"
     MESSAGE_HOST_BY = "message_host_by"
     MESSAGE_NO_PARTICIPANTS = "message_no_participants"
     MESSAGE_REACT_TO_JOIN = "message_react_to_join"
@@ -67,6 +74,16 @@ class Language:
     MESSAGE_SLOTS = "message_slots"
 
     @staticmethod
+    def get_languages() -> list[str]:
+        """
+        Get the list of supported languages
+        """
+        return [
+            "en-us",
+            "zh-tw"
+        ]
+
+    @staticmethod
     def get_translation(key: str, language: str) -> str:
         """
         Get the translation for a given key and language.
@@ -75,7 +92,7 @@ class Language:
         path = f"{Language.LANGUAGES_FOLDER}{language}.json"
         lang_data = json_helper.load_without_async(path)
         if not lang_data:
-            path = f"{Language.LANGUAGES_FOLDER}{Language.DEFAULT_LANGUAGE}.json"
+            path = f"{Language.LANGUAGES_FOLDER}{settings.DEFAULT_LANGUAGE}.json"
             lang_data = json_helper.load_without_async(path)
 
         return lang_data.get(key, key)

@@ -24,13 +24,6 @@ SOFTWARE.
 
 import json
 
-async def save(data, path: str):
-    """
-    Save data to a JSON file.
-    """
-    with open(path, "w", encoding="utf-8") as file:
-        json.dump(data, file)
-
 async def load(path: str):
     """
     Load data from a JSON file.
@@ -52,3 +45,17 @@ def load_without_async(path: str):
     except FileNotFoundError:
         data = {}
     return data
+
+async def save(data, path: str):
+    """
+    Save data to a JSON file.
+    """
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(data, file)
+
+def save_without_async(data, path: str):
+    """
+    Save data to a JSON file.
+    """
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(data, file)
