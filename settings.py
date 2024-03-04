@@ -29,7 +29,7 @@ import os
 
 load_dotenv()
 
-ALLOW_ADD_NEW_GUILD = True
+ALLOW_ADD_NEW_GUILD = False
 DEFAULT_LANGUAGE = "en-us"
 DEFAULT_TIMEZONE = "Asia/Taipei"
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")

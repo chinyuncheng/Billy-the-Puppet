@@ -28,9 +28,6 @@ import os
 from core.game_events import GameEvent
 from core.guild_infos import GuildInfo
 from utils import discord_helper, json_helper, os_helper
-import settings
-
-logger = settings.logging.getLogger("bot")
 
 async def delete_recruitment_end_game_events(bot: commands.Bot):
     """
