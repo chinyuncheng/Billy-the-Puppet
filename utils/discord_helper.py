@@ -42,7 +42,7 @@ async def get_message(client: discord.Client, channel_id: int, message_id: int) 
         logger.warning(f"Message with ID {message_id} not found.")
         return None
 
-async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: discord.Client, guildinfo: GuildInfo):
+async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: discord.Client):
     """
     The on_raw_reaction_add extension version, add function signature `client`.
     """
@@ -54,6 +54,12 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: d
     if payload.emoji.name != '⚔️':
         return
 
+    guild_info_json_path = f"{GuildInfo.ROOT_FOLDER}{payload.guild_id}/{GuildInfo.GUILD_INFO_JSON}"
+    guild_info_dict = await json_helper.load(guild_info_json_path)
+    if not guild_info_dict:
+        return
+
+    guildinfo = GuildInfo.from_dict(guild_info_dict)
     game_event_json_path = guildinfo.get_game_event_json_path(payload.channel_id)
     game_events = await json_helper.load(game_event_json_path)
     game_event = None
@@ -77,7 +83,7 @@ async def on_raw_reaction_add(payload: discord.RawReactionActionEvent, client: d
         del game_events[key]
         await json_helper.save(game_events, game_event_json_path)
 
-async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client: discord.Client, guildinfo: GuildInfo):
+async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client: discord.Client):
     """
     The on_raw_reaction_remove extension version, add function signature `client`.
     """
@@ -87,6 +93,12 @@ async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent, client
     if payload.emoji.name != '⚔️':
         return
 
+    guild_info_json_path = f"{GuildInfo.ROOT_FOLDER}{payload.guild_id}/{GuildInfo.GUILD_INFO_JSON}"
+    guild_info_dict = await json_helper.load(guild_info_json_path)
+    if not guild_info_dict:
+        return
+
+    guildinfo = GuildInfo.from_dict(guild_info_dict)
     game_event_json_path = guildinfo.get_game_event_json_path(payload.channel_id)
     game_events = await json_helper.load(game_event_json_path)
     game_event = None

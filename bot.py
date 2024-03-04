@@ -41,6 +41,13 @@ logger = settings.logging.getLogger("bot")
 bot = commands.Bot(command_prefix="/", intents=discord.Intents.all())
 
 @bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        return
+    logger.error(f"Error in command '{ctx.command}': {error}")
+    traceback.print_exc()
+
+@bot.event
 async def on_guild_join(guild):
     if settings.ALLOW_ADD_NEW_GUILD:
         logger.info(f'Joined new guild: {guild.name} (ID: {guild.id})')
@@ -49,6 +56,14 @@ async def on_guild_join(guild):
         guildinfo = GuildInfo(guild.id, path, settings.DEFAULT_LANGUAGE, pytz.timezone(settings.DEFAULT_TIMEZONE))
         await json_helper.save(guildinfo.to_dict(), guildinfo.get_json_path())
         await initialize_guild(guild)
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    await discord_helper.on_raw_reaction_add(payload, bot)
+
+@bot.event
+async def on_raw_reaction_remove(payload):
+    await discord_helper.on_raw_reaction_remove(payload, bot)
 
 @bot.event
 async def on_ready():
@@ -77,21 +92,6 @@ async def initialize_guild(guild: discord.Guild):
                 if current.lower() in language_choice.lower():
                     data.append(app_commands.Choice(name=language_choice, value=language_choice))
             return data
-
-        @bot.event
-        async def on_command_error(ctx, error):
-            if isinstance(error, commands.CommandNotFound):
-                return
-            logger.error(f"Error in command '{ctx.command}': {error}")
-            traceback.print_exc()
-
-        @bot.event
-        async def on_raw_reaction_add(payload):
-            await discord_helper.on_raw_reaction_add(payload, bot, guildinfo)
-
-        @bot.event
-        async def on_raw_reaction_remove(payload):
-            await discord_helper.on_raw_reaction_remove(payload, bot, guildinfo)
 
         @bot.tree.command(
             name=core_commands.COMMAND_HELP,
